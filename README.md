@@ -128,4 +128,5 @@ log_max_days = 7
 最后的最后，记得看下客户端证书里 remote xxx.xxx.xxx.xxx yyyyy udp
  xxx.xxx.xxx.xxx yyyyy是不是你的服务器ip和端口，如果不是，手动修改一下
  
- 参考于 https://github.com/kylemanna/docker-openvpn
+[1] https://github.com/kylemanna/docker-openvpn
+[2] https://github.com/fatedier/frp/releases/download/v0.37.0/frp_0.37.0_linux_amd64.tar.gz
