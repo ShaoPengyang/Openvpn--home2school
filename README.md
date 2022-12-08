@@ -42,7 +42,7 @@ push "comp-lzo no"
 Hefei University of Technology部分换成自己学校的部分
 ##### 添加新用户
 ```
-export OVPN_DATA="ovpn-data-zhkun"
+export OVPN_DATA="ovpn-data-anyname"
 docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full zhkun
 ```
 ##### frp将1194端口曝露出去
