@@ -43,7 +43,7 @@ Hefei University of Technology部分换成自己学校的部分
 ##### 添加新用户
 ```
 export OVPN_DATA="ovpn-data-anyname"
-docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full zhkun
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full user2
 ```
 ##### frp将1194端口曝露出去
 frp可以把挂载openvpn服务的机器的1194端口曝露出去
