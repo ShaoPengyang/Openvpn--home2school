@@ -40,14 +40,19 @@ push "route 210.45.0.0  255.255.0.0" # China Education and Research Network
 push "comp-lzo no"
 ```
 Hefei University of Technology部分换成自己学校的部分
-##### 添加新用户
+设置自启动
+```
+docker update --restart=always container_id_of_openvpn
+```
+添加新用户
 ```
 export OVPN_DATA="ovpn-data-anyname"
 docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full user2
 ```
-##### frp将1194端口曝露出去
-frp可以把挂载openvpn服务的机器的1194端口曝露出去
-在本地机器安装frpc-0.37
+##### frp将1194端口曝露出去,
+frp可以把挂载openvpn服务的机器的1194端口曝露出去,
+在本地机器安装frpc-0.37,
+按照frp的说明把他设置成服务，自启动。
 frpc.ini证书
 ```
 [common]
@@ -124,9 +129,10 @@ log_level = warn
 log_max_days = 7
 
 ```
-最后记得把公网服务器的防火墙的1194端口打开（或者你设置的任意端口）
-最后的最后，记得看下客户端证书里 remote xxx.xxx.xxx.xxx yyyyy udp
- xxx.xxx.xxx.xxx yyyyy是不是你的服务器ip和端口，如果不是，手动修改一下
+最后记得把公网服务器的防火墙的1194端口打开（或者你设置的任意端口）。
+最后的最后，记得看下客户端证书里 remote xxx.xxx.xxx.xxx yyyyy udp，
+ xxx.xxx.xxx.xxx yyyyy是不是你的服务器ip和端口，如果不是，手动修改一下。
  
 [1] https://github.com/kylemanna/docker-openvpn
+
 [2] https://github.com/fatedier/frp/releases/download/v0.37.0/frp_0.37.0_linux_amd64.tar.gz
