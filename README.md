@@ -1,33 +1,41 @@
 
-### 校园代理-OpenVPN代理分流
+### Use OpenVPN to connect to school environment at home
 
-#### 以学生身份买了个公网服务器打算用作校园代理，但是有流量限制，故分流。设置如下
-##### 初运行以及分流设置
+#### Requirement
+1. A VPS with Public IP 
+2. A computer at school
+
+##### Initialization OpenVpn on the computer at school. 
 ```
 export OVPN_DATA="ovpn-data-anyname"
 docker volume create --name $OVPN_DATA
 docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig -u udp://yourvpsip # (yourvpsip can be ip or host of your vps)
 docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn ovpn_initpki
 ```
-CA key要多次输入，请记清楚，不要前后输入不一致
+
+Note that, you need inputting CA key for several times. Please ensure they are consistent. 
 ```
-docker run -v $OVPN_DATA:/etc/openvpn -d -p 1194:1194/udp --cap-add=NET_ADMIN kylemanna/openvpn # 开始运行
-docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full user1 # 生成客户端证书
-docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_getclient user1 > user1.ovpn # 导出user1的客户端证书到本地目录
+docker run -v $OVPN_DATA:/etc/openvpn -d -p 1194:1194/udp --cap-add=NET_ADMIN kylemanna/openvpn # run
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full user1 # Generate client certificate
+docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_getclient user1 > user1.ovpn # Export client certificate to local directory
 ```
-到这，其实客户端证书已经生成了，不过默认的流量全部走代理了，不分流。
-继续处理。
-首先，注释掉客户端证书里的最后一句，就是# redirect-gateway def1 这一句
+At this point, the client certificate has been generated, but the default traffic has gone through the proxy, without diversion.
+
+##### diversion (Proxy and Direct)
+First, comment out ``redirect-gateway def1'' in the client certificate. 
+Second, edit the config file using the following command: 
 ```
-docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn vi /etc/openvpn/openvpn.conf # 更新配置文件，配置分流内容
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn vi /etc/openvpn/openvpn.conf # 
 ```
-以上内容是配置需要的分流内容，把需要走代理的写进route里面，注释掉block-outside-dns
+
+My config file
 ```
 ### Push Configurations Below
 # push "block-outside-dns"
-push "dhcp-option DNS XXX.45.240.99" # XXX.45.240.99是我们学校的DNS服务器地址
-push "dhcp-option DNS 8.8.8.8"
+push "dhcp-option DNS XXX.45.240.99" # XXX.45.240.99 is the DNS server of my school. For Intranet domain name resolution. 
+push "dhcp-option DNS 8.8.8.8" # public 
 push "dhcp-option DNS 8.8.4.4"
+# the following address will be visited through Proxy. 
 push "route 172.16.200.0 255.255.255.0"
 push "route XXX.XXX.0.0 255.255.240.0" # Hefei University of Technology
 push "route XXX.XXX.16.0 255.255.248.0" # Hefei University of Technology
@@ -40,20 +48,27 @@ push "route 210.45.0.0  255.255.0.0" # China Education and Research Network
 push "comp-lzo no"
 ```
 Hefei University of Technology部分换成自己学校的部分
-设置自启动
+
+Third, Self-start
 ```
 docker update --restart=always container_id_of_openvpn
 ```
-添加新用户
+
+How to add new users for OpenVPN
 ```
 export OVPN_DATA="ovpn-data-anyname"
 docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full user2
 ```
-##### frp将1194端口曝露出去,
-frp可以把挂载openvpn服务的机器的1194端口曝露出去,
-在本地机器安装frpc-0.37,
-按照frp的说明把他设置成服务，自启动。
-frpc.ini证书
+Now, openVpn has been successfully set. 
+
+##### Visit Openvpn through the Public IP. 
+I use frp to realize the Port mapping.
+1. A VPS with Public IP (Server of frp) frps
+2. A computer at school (Client of frp) frpc
+
+Use frp to map 1194 port (or any other OpenVpn port) of the school 
+frpc-0.37,
+Edit frpc.ini 
 ```
 [common]
 # A literal address or host name for IPv6 must be enclosed
@@ -98,6 +113,7 @@ use_encryption = false
 use_compression = false
 
 ```
+Edit frps.ini on the Server 
 在公网服务器上安装frps-0.37，证书内容注意token与frpc要相同，allow_ports要包括1194
 ```
 [common]
@@ -129,9 +145,8 @@ log_level = warn
 log_max_days = 7
 
 ```
-最后记得把公网服务器的防火墙的1194端口打开（或者你设置的任意端口）。
-最后的最后，记得看下客户端证书里 remote xxx.xxx.xxx.xxx yyyyy udp，
- xxx.xxx.xxx.xxx yyyyy是不是你的服务器ip和端口，如果不是，手动修改一下。
+Remember to open port 1194 of the firewall of the public server (or any port you set).
+Finally, remember to look at the remote xxx.xxx.xxx.xxx yyyy udp in the client certificate, Is xxx. xxx. xxx. xxx yyyy your server IP and port? If not, modify it manually.
  
 [1] https://github.com/kylemanna/docker-openvpn
 
