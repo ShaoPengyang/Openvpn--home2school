@@ -47,7 +47,7 @@ push "route 121.250.0.0 255.254.0.0" # China Education and Research Network
 push "route 210.45.0.0  255.255.0.0" # China Education and Research Network
 push "comp-lzo no"
 ```
-Hefei University of Technology部分换成自己学校的部分
+Hefei University of Technology should be replaced with yours 
 
 Third, Self-start
 ```
@@ -114,7 +114,7 @@ use_compression = false
 
 ```
 Edit frps.ini on the Server 
-在公网服务器上安装frps-0.37，证书内容注意token与frpc要相同，allow_ports要包括1194
+install frps-0.37 (better make sure the same version) on the vps,token in frpc and frps must be the same, allow_ports must include 1194
 ```
 [common]
 bind_addr = 0.0.0.0
@@ -147,7 +147,8 @@ log_max_days = 7
 ```
 Remember to open port 1194 of the firewall of the public server (or any port you set).
 Finally, remember to look at the remote xxx.xxx.xxx.xxx yyyy udp in the client certificate, Is xxx. xxx. xxx. xxx yyyy your server IP and port? If not, modify it manually.
- 
+
+Refererences
 [1] https://github.com/kylemanna/docker-openvpn
 
 [2] https://github.com/fatedier/frp/releases/download/v0.37.0/frp_0.37.0_linux_amd64.tar.gz
